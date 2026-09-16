@@ -1,0 +1,111 @@
+services:
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ApiGateway.Dockerfile
+
+    container_name: productservice-gateway
+
+    ports:
+      - "8081:8080"
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+
+    depends_on:
+      - productservice
+
+  orderservice:
+    build:
+      context: .
+      dockerfile: OrderService.Dockerfile
+
+    container_name: orderservice-api
+
+    ports:
+      - "8082:8080"
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+
+      ConnectionStrings__OrderConnection: "Host=orderservice-postgres;Port=5432;Database=OrderDb;Username=postgres;Password=postgres"
+
+      Services__ProductService: "http://productservice:8080"
+
+    depends_on:
+      orderservice-postgres:
+        condition: service_healthy
+      productservice:
+        condition: service_started
+  productservice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: productservice-api
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+
+      ConnectionStrings__ProductConnection: "Host=postgres;Port=5432;Database=ProductDb;Username=postgres;Password=postgres"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+
+  postgres:
+    image: postgres:16-alpine
+
+    container_name: productservice-postgres
+
+    environment:
+      POSTGRES_DB: ProductDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - productservice_postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ProductDb"]
+
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  orderservice-postgres:
+    image: postgres:16-alpine
+
+    container_name: orderservice-postgres
+
+    environment:
+      POSTGRES_DB: OrderDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - orderservice_postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d OrderDb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+volumes:
+  productservice_postgres_data:
+  orderservice_postgres_data:
