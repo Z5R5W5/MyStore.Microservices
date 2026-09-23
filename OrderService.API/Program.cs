@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using OrderService.Application.Interfaces;
 using OrderService.Application.Orders.Commands.CreateOrder;
 using OrderService.Infrastructure.Data;
+using OrderService.Infrastructure.Messaging;
 using OrderService.Infrastructure.Repositories;
 using OrderService.Infrastructure.Services;
 
@@ -22,6 +23,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<OrderDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("OrderConnection")));
+builder.Services.AddScoped<IMessagePublisher, RabbitMqPublisher>();
 
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 

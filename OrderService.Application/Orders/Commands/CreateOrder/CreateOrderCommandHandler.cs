@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using MediatR;
+using OrderService.Application.Events;
 using OrderService.Application.Interfaces;
 using OrderService.Domain.Entities;
 
@@ -12,13 +13,16 @@ public class CreateOrderCommandHandler
 {
     private readonly IProductServiceClient _productServiceClient;
     private readonly IOrderRepository _orderRepository;
+    private readonly IMessagePublisher _messagePublisher;
 
     public CreateOrderCommandHandler(
         IProductServiceClient productServiceClient,
-        IOrderRepository orderRepository)
+        IOrderRepository orderRepository,
+        IMessagePublisher messagePublisher)
     {
         _productServiceClient = productServiceClient;
         _orderRepository = orderRepository;
+        _messagePublisher = messagePublisher;
     }
 
     public async Task<int> Handle(
@@ -61,6 +65,15 @@ public class CreateOrderCommandHandler
         await _orderRepository.AddAsync(
             order,
             cancellationToken);
+
+        var orderCreatedEvent = new OrderCreatedEvent(
+            order.Id,
+            order.UserId);
+        await _messagePublisher.PublishAsync(
+                orderCreatedEvent,
+                "orders",
+                "order.created",
+                cancellationToken);
 
         return order.Id;
     }

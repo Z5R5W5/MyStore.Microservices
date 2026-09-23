@@ -1,5 +1,9 @@
 <Solution>
   <Project Path="ApiGateway/ApiGateway.csproj" />
+  <Project Path="NotificationService.API/NotificationService.API.csproj" />
+  <Project Path="NotificationService.Application/NotificationService.Application.csproj" />
+  <Project Path="NotificationService.Domain/NotificationService.Domain.csproj" />
+  <Project Path="NotificationService.Infrastructure/NotificationService.Infrastructure.csproj" />
   <Project Path="OrderService.API/OrderService.API.csproj" />
   <Project Path="OrderService.Application/OrderService.Application.csproj" />
   <Project Path="OrderService.Domain/OrderService.Domain.csproj" />

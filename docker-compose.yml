@@ -1,4 +1,5 @@
 services:
+ 
 
   api-gateway:
     build:
@@ -15,7 +16,46 @@ services:
       ASPNETCORE_HTTP_PORTS: 8080
 
     depends_on:
-      - productservice
+      productservice:
+        condition: service_started
+
+      orderservice:
+        condition: service_started
+
+      notificationservice:
+        condition: service_started
+  notificationservice:
+    build:
+      context: .
+      dockerfile: NotificationService.Dockerfile
+
+    container_name: notificationservice-api
+
+    ports:
+      - "8083:8080"
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+
+      MongoDb__ConnectionString: "mongodb://mongodb:27017"
+      MongoDb__DatabaseName: "NotificationDb"
+      MongoDb__CollectionName: "Notifications"
+
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__Port: "5672"
+      RabbitMQ__Username: "guest"
+      RabbitMQ__Password: "guest"
+      RabbitMQ__Exchange: "orders"
+      RabbitMQ__Queue: "order-created"
+      RabbitMQ__RoutingKey: "order.created"
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+      mongodb:
+        condition: service_started
 
   orderservice:
     build:
@@ -35,11 +75,20 @@ services:
 
       Services__ProductService: "http://productservice:8080"
 
+      RabbitMQ__Host: "rabbitmq"
+      RabbitMQ__Port: "5672"
+      RabbitMQ__Username: "guest"
+      RabbitMQ__Password: "guest"
+
     depends_on:
       orderservice-postgres:
         condition: service_healthy
+
       productservice:
         condition: service_started
+
+      rabbitmq:
+        condition: service_healthy
   productservice:
     build:
       context: .
@@ -105,7 +154,37 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
 
+    container_name: mystore-rabbitmq
+
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - notificationservice_mongo_data:/data/db
 volumes:
   productservice_postgres_data:
   orderservice_postgres_data:
+  notificationservice_mongo_data:
+  rabbitmq_data:
