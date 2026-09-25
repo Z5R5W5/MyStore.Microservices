@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orderservice
+  template:
+    metadata:
+      labels:
+        app: orderservice
+    spec:
+      containers:
+        - name: orderservice
+          image: mystoremicroservices-orderservice:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ConnectionStrings__OrderConnection
+              value: "Host=orderservice-postgres;Port=5432;Database=OrderDb;Username=postgres;Password=postgres"
+            - name: Services__ProductService
+              value: "http://productservice:8080"
+            - name: RabbitMQ__Host
+              value: "rabbitmq"
+            - name: RabbitMQ__Port
+              value: "5672"
+            - name: RabbitMQ__Username
+              value: "guest"
+            - name: RabbitMQ__Password
+              value: "guest"

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderservice-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orderservice-postgres
+  template:
+    metadata:
+      labels:
+        app: orderservice-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: OrderDb
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: postgres
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: orderservice-postgres-pvc

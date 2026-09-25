@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: productservice
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: productservice
+
+  template:
+    metadata:
+      labels:
+        app: productservice
+
+    spec:
+      containers:
+        - name: productservice
+          image: mystoremicroservices-productservice:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ConnectionStrings__ProductConnection
+              value: "Host=productservice-postgres;Port=5432;Database=ProductDb;Username=postgres;Password=postgres"

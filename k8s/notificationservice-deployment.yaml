@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notificationservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notificationservice
+  template:
+    metadata:
+      labels:
+        app: notificationservice
+    spec:
+      containers:
+        - name: notificationservice
+          image: mystoremicroservices-notificationservice:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MongoDb__ConnectionString
+              value: "mongodb://mongodb:27017"
+            - name: MongoDb__DatabaseName
+              value: "NotificationDb"
+            - name: MongoDb__CollectionName
+              value: "Notifications"
+            - name: RabbitMQ__Host
+              value: "rabbitmq"
+            - name: RabbitMQ__Port
+              value: "5672"
+            - name: RabbitMQ__Username
+              value: "guest"
+            - name: RabbitMQ__Password
+              value: "guest"
+            - name: RabbitMQ__Exchange
+              value: "orders"
+            - name: RabbitMQ__Queue
+              value: "order-created"
+            - name: RabbitMQ__RoutingKey
+              value: "order.created"
