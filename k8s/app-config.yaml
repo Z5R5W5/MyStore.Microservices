@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  PRODUCT_SERVICE_URL: "http://productservice:8080"
+  RABBITMQ_HOST: "rabbitmq"
+  RABBITMQ_PORT: "5672"
